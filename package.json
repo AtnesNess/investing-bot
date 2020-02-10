@@ -1,0 +1,51 @@
+{
+  "name": "investing-bot",
+  "version": "1.0.0",
+  "description": "Telegram bot designed to help you with investing",
+  "main": "index.js",
+  "repository": "https://github.com/AtnesNess/investing-bot.git",
+  "author": "AtnesNess <atnesness@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "sequelize": "sequelize",
+    "psql-server": "pg_ctl -D /usr/local/var/postgres start",
+    "dev": "sequelize db:migrate && NODE_PATH=./src nodemon",
+    "test": "NODE_ENV=testing NODE_PATH=./src sequelize db:migrate && mocha -r esm -r ts-node/register test/*.spec.js",
+    "build": "NODE_PATH=./src tsc --build tsconfig.json",
+    "start": "cross-env NODE_PATH=./src NODE_ENV=production sequelize db:migrate && node dist/index"
+  },
+  "engines": {
+    "node": ">=10.0"
+  },
+  "dependencies": {
+    "@types/cheerio": "^0.22.16",
+    "axios": "^0.19.2",
+    "cheerio": "^1.0.0-rc.3",
+    "dotenv": "^8.2.0",
+    "lodash": "^4.17.15",
+    "nodemon": "^2.0.2",
+    "pg": "^7.18.1",
+    "qs": "^6.9.1",
+    "sequelize": "^5.21.4",
+    "telegraf": "^3.36.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.8.4",
+    "@babel/plugin-proposal-class-properties": "^7.8.3",
+    "@babel/plugin-proposal-decorators": "^7.8.3",
+    "@babel/preset-typescript": "^7.8.3",
+    "@babel/register": "^7.8.3",
+    "@types/chai": "^4.2.8",
+    "@types/lodash": "^4.14.149",
+    "@types/mocha": "^7.0.1",
+    "@types/node": "^13.7.0",
+    "@types/qs": "^6.9.1",
+    "chai": "^4.2.0",
+    "esm": "^3.2.25",
+    "mocha": "^7.0.1",
+    "sequelize-cli": "^5.5.1",
+    "telegram-test-api": "^2.4.2",
+    "ts-node": "^8.6.2",
+    "typescript": "^3.7.5"
+  }
+}
