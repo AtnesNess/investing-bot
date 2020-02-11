@@ -6,8 +6,9 @@ module.exports = {
 
         return await queryInterface.bulkInsert(
             'stocks',
-            stocks.map(({ticker}) => ({
+            stocks.map(({symbol: {ticker, showName}}) => ({
                 ticker,
+                name: showName,
                 createdAt: new Date(),
                 updatedAt: new Date(),
             }))
