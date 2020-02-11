@@ -39,6 +39,8 @@ async function checkEarningUpdates() {
 
     const userChatIds = User.findAll().map((user: User) => user.get('chatId'));
 
+    console.log(userChatIds, typeof userChatIds, Array.from(userChatIds));
+
     const stocks = await Stock.findAll({
         where: {
             ticker: Array.from(stockEarnings.keys())
