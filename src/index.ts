@@ -37,9 +37,7 @@ async function checkEarningUpdates() {
         return;
     }
 
-    const userChatIds = User.findAll().map((user: User) => user.get('chatId'));
-
-    console.log(userChatIds, typeof userChatIds, Array.from(userChatIds));
+    const userChatIds = await User.findAll().map((user: User) => user.get('chatId'));
 
     const stocks = await Stock.findAll({
         where: {
