@@ -54,7 +54,7 @@ async function checkEarningUpdates() {
         if (!isEqual(earning, prevStockEarnings.get(ticker))) {
             for (let chatId of userChatIds) {
                 await sendTgMessage(
-                    `📊[${earning.name}](${earning})📊\n` +
+                    `📊[${earning.name}](${earning.link})📊\n` +
                     `EPS: ${earning.epsForecast} / ${earning.epsFact} ` +
                     `${earning.epsPositive ? '📈' : ''}${earning.epsNegative ? '📉' : ''}\n` +
                     `Income: ${earning.incomeForecast} / ${earning.incomeFact} ` +
