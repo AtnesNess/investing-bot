@@ -54,13 +54,14 @@ async function checkEarningUpdates() {
         if (!earning || !prevEarning) continue;
 
         if (!isEqual(earning, prevEarning)) {
+            console.log(earning, prevEarning);
             for (let chatId of userChatIds) {
                 await sendTgMessage(
                     `📊[${earning.name}](${earning.link})📊\n` +
                     `EPS: ${earning.epsForecast} / ${earning.epsFact} ` +
-                    `${earning.epsPositive ? '📈' : ''}${earning.epsNegative ? '📉' : ''}\n` +
+                    `${earning.epsPositive ? '✅' : ''}${earning.epsNegative ? '❌' : ''}\n` +
                     `Income: ${earning.incomeForecast} / ${earning.incomeFact} ` +
-                    `${earning.incomePositive ? '📈' : ''}${earning.incomeNegative ? '📉' : ''}`,
+                    `${earning.incomePositive ? '✅' : ''}${earning.incomeNegative ? '❌' : ''}`,
                     chatId
                 )
             }
