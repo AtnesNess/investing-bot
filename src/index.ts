@@ -10,7 +10,7 @@ import Stock from './db/models/stock';
 import User from './db/models/user';
 import { collectStockEarnings, StockEarning } from './utils/stocks-collector';
 
-const INTERVAL_MS = 1000 * 60 * 5;
+const INTERVAL_MS = 1000 * 60 * 2;
 
 async function initServer() {
     await initDB(<string>process.env.DATABASE_URL);
@@ -19,6 +19,7 @@ async function initServer() {
         await runBot();
     }
 
+    checkEarningUpdates();
     setInterval(checkEarningUpdates, INTERVAL_MS);
 
     http.createServer((_, res) => {
@@ -48,10 +49,11 @@ async function checkEarningUpdates() {
     for (let stock of stocks) {
         const ticker = stock.get('ticker');
         const earning = stockEarnings.get(ticker);
+        const prevEarning = prevStockEarnings.get(ticker);
 
-        if (!earning) continue;
+        if (!earning || !prevEarning) continue;
 
-        if (!isEqual(earning, prevStockEarnings.get(ticker))) {
+        if (!isEqual(earning, prevEarning)) {
             for (let chatId of userChatIds) {
                 await sendTgMessage(
                     `📊[${earning.name}](${earning.link})📊\n` +
