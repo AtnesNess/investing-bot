@@ -5,7 +5,7 @@ import http from 'http';
 dotenv.config();
 
 import { runBot, sendTgMessage } from './bot';
-import { initDB } from './db';
+import { initDB, sequelize }from './db';
 import Stock from './db/models/stock';
 import User from './db/models/user';
 import { collectStockEarnings, StockEarning } from './utils/stocks-collector';
@@ -48,24 +48,29 @@ async function checkEarningUpdates() {
 
     for (let stock of stocks) {
         const ticker = stock.get('ticker');
+        const name = stock.get('name');
         const earning = stockEarnings.get(ticker);
         const prevEarning = prevStockEarnings.get(ticker);
 
         if (!earning || !prevEarning) continue;
+        if (isEqual(earning, prevEarning)) continue;
 
-        if (!isEqual(earning, prevEarning)) {
-            console.log(earning, prevEarning);
-            for (let chatId of userChatIds) {
-                await sendTgMessage(
-                    `📊[${earning.name}](${earning.link})📊\n` +
-                    `EPS: ${earning.epsForecast} / ${earning.epsFact} ` +
-                    `${earning.epsPositive ? '✅' : ''}${earning.epsNegative ? '❌' : ''}\n` +
-                    `Income: ${earning.incomeForecast} / ${earning.incomeFact} ` +
-                    `${earning.incomePositive ? '✅' : ''}${earning.incomeNegative ? '❌' : ''}`,
-                    chatId,
-                    {disable_web_page_preview: true}
-                )
-            }
+        const [[{similarity}]] = await sequelize.query(
+            `SELECT similarity from similarity('${name}', '${earning.name}')`
+        );
+
+        if (Number(similarity) < 0.3) continue;
+
+        for (let chatId of userChatIds) {
+            await sendTgMessage(
+                `📊[${earning.showName}](${earning.link})📊\n` +
+                `EPS: ${earning.epsForecast} / ${earning.epsFact} ` +
+                `${earning.epsPositive ? '✅' : ''}${earning.epsNegative ? '❌' : ''}\n` +
+                `Income: ${earning.incomeForecast} / ${earning.incomeFact} ` +
+                `${earning.incomePositive ? '✅' : ''}${earning.incomeNegative ? '❌' : ''}`,
+                chatId,
+                {disable_web_page_preview: true}
+            )
         }
     }
 

@@ -20,6 +20,7 @@ export interface Stock {
 
 export interface StockEarning {
     name: string,
+    showName: string,
     ticker: string,
     link: string,
     epsForecast: string,
@@ -81,15 +82,17 @@ export async function collectStockEarnings(): Promise<Map<string, StockEarning>>
     for (let stockElement of stockElements) {
         const stockEarningDetailsElement = $('.earningsDetails', stockElement);
 
-        const name = $('p', stockElement).text().trim();
-        const tickerMatch = name.match(/.*?\((.*)?\)/);
-        const ticker = tickerMatch && tickerMatch[1];
+        const showName = $('p', stockElement).text().trim();
+        const showNameMatch = showName.match(/(.*)?\s+?\((.*)?\)/);
+        const name = showNameMatch && showNameMatch[1];
+        const ticker = showNameMatch && showNameMatch[2];
         const link = $('a', stockElement).prop('href');
         const linkWithoutQuery = link.includes('?') ? link.split('?')[0] : link;
 
-        if (!ticker) continue;
+        if (!ticker || !name) continue;
 
         earnings.set(ticker, {
+            showName,
             name,
             ticker,
             link: `https://m.ru.investing.com${linkWithoutQuery}`,
