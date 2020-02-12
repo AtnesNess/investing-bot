@@ -16,7 +16,19 @@ export function initModel(sequelize) {
         filters: {
             type: Sequelize.JSON,
             defaultValue: {},
-        }
+        },
+        username: {
+            type: Sequelize.STRING,
+            allowNull: true,
+        },
+        firstName: {
+          type: Sequelize.STRING,
+          allowNull: true,
+        },
+        lastName: {
+          type: Sequelize.STRING,
+          allowNull: true,
+        },
     }, {
           sequelize,
           modelName: 'user'

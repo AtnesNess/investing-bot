@@ -21,7 +21,7 @@ async function initBot(options) {
             const {
                 message_id: messageId,
                 chat: {id: chatId} = {},
-                from: {is_bot: isBot} = {},
+                from: {is_bot: isBot, id: userId, username, last_name, first_name} = {},
             } = update.message || update.callback_query && update.callback_query.message || {};
 
             if (!chatId) return;
@@ -29,12 +29,17 @@ async function initBot(options) {
             ctx.getUser = async () => {
                 const [user, created] = await User.findOrCreate({
                     where: {
-                        chatId,
+                        userId,
                     },
+                    defaults: {
+                        firstName: first_name,
+                        lastName: last_name,
+                        username,
+                    }
                 });
 
                 if (created) {
-                    console.log(`${chatId} has been added to db`);
+                    console.log(`${userId} has been added to db`);
                 }
 
                 return {...user.get({plain: true}), instance: user};
@@ -63,7 +68,8 @@ async function initBot(options) {
             }
 
             ctx.getUserMentionLink = (user) => {
-                return `[user_${user.chatId}](tg://user?id=${user.chatId})`;
+                return `[${(user.firstName || '') + (user.lastName ? ` ${user.lastName}` : '')
+                    || user.username || `user_${user.chatId}`}](tg://user?id=${user.chatId})`;
             }
 
             if (!ctx.session.user) {
@@ -89,6 +95,14 @@ async function initBot(options) {
     });
 
     bot.start(async (ctx) => {
+        const {update: {message: {chat: {type}}}} = ctx;
+
+        if (type === 'group') {
+            return ctx.replyWithMarkdown(
+                'Данный бот умеет общаться только в личных сообщениях'
+            );
+        }
+
         await ctx.replyWithMarkdown(
             `Привет!\nЯ бот, который поможет вам инвестировать.\n` +
             `Я буду присылать вам отчеты компаний в течение дня.\n` +
