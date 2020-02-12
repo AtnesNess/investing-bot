@@ -27,7 +27,6 @@ export function registerScene(bot, stage) {
                     m.callbackButton('Выдать права', 'enableadmin'),
                     m.callbackButton('Забрать права', 'disableadmin'),
                     m.callbackButton('Отправить сообщение всем', 'channel'),
-                    m.callbackButton('Выгрузить csv профилей', 'csv'),
                 ], {wrap: () => true})),
         );
     }

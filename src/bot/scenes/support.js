@@ -1,4 +1,5 @@
 import Scene from 'telegraf/scenes/base';
+import { Extra } from 'telegraf';
 
 import User from '../../db/models/user';
 
@@ -11,7 +12,14 @@ export function registerScene(bot, stage) {
         return await ctx.scene.enter(scene.id);
     });
 
-    scene.enter(async (ctx) => await ctx.replyWithMarkdown('Пожалуйста введите сообщение'))
+    scene.enter(async (ctx) => await ctx.reply(
+        'Пожалуйста введите сообщение',
+        Extra
+            .markdown()
+            .markup(m => m.inlineKeyboard([
+                m.callbackButton('Отмена', 'leave'),
+            ]))
+    ));
 
     scene.on('text', async (ctx) => {
         const {message: {text}} = ctx;
@@ -26,5 +34,11 @@ export function registerScene(bot, stage) {
         await ctx.reply('Ваше сообщение отправлено, спасибо');
 
         return await ctx.scene.leave();
+    });
+
+    scene.action('leave', async (ctx) => {
+        await ctx.scene.leave();
+
+        return await ctx.changeMessageOrReply('Отправка сообщения в поддежрку отменена.')
     });
 };
