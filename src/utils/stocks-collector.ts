@@ -84,13 +84,15 @@ export async function collectStockEarnings(): Promise<Map<string, StockEarning>>
         const name = $('p', stockElement).text().trim();
         const tickerMatch = name.match(/.*?\((.*)?\)/);
         const ticker = tickerMatch && tickerMatch[1];
+        const link = $('a', stockElement).prop('href');
+        const linkWithoutQuery = link.includes('?') ? link.split('?')[0] : link;
 
         if (!ticker) continue;
 
         earnings.set(ticker, {
             name,
             ticker,
-            link: `https://m.ru.investing.com${$('a', stockElement).prop('href')}`,
+            link: linkWithoutQuery,
             epsForecast: $('div:first-child > .act', stockEarningDetailsElement).text(),
             epsFact: $('div:first-child > .fore', stockEarningDetailsElement).text(),
             incomeForecast: $('div:last-child > .act', stockEarningDetailsElement).text(),
