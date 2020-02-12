@@ -29,7 +29,7 @@ async function initBot(options) {
             ctx.getUser = async () => {
                 const [user, created] = await User.findOrCreate({
                     where: {
-                        userId,
+                        chatId: userId,
                     },
                     defaults: {
                         firstName: first_name,
