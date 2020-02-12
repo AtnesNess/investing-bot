@@ -119,7 +119,11 @@ export async function sendTgMessage(text, chatId) {
         return;
     }
 
-    await telegram.sendMessage(chatId, text, {parse_mode: 'Markdown'})
+    try {
+        await telegram.sendMessage(chatId, text, {parse_mode: 'Markdown'})
+    } catch (e) {
+        console.error(e);
+    }
 }
 
 export async function runBot(options = {}) {
