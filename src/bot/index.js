@@ -128,7 +128,7 @@ async function initBot(options) {
 let bot = null;
 let telegram = null;
 
-export async function sendTgMessage(text, chatId) {
+export async function sendTgMessage(text, chatId, options) {
     if (!telegram) {
         console.log('MESSAGE SENT TO NOWHERE:', text);
 
@@ -136,7 +136,7 @@ export async function sendTgMessage(text, chatId) {
     }
 
     try {
-        await telegram.sendMessage(chatId, text, {parse_mode: 'Markdown'})
+        await telegram.sendMessage(chatId, text, {parse_mode: 'Markdown', ...options})
     } catch (e) {
         console.error(e);
     }

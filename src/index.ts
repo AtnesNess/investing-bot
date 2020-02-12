@@ -62,7 +62,8 @@ async function checkEarningUpdates() {
                     `${earning.epsPositive ? '✅' : ''}${earning.epsNegative ? '❌' : ''}\n` +
                     `Income: ${earning.incomeForecast} / ${earning.incomeFact} ` +
                     `${earning.incomePositive ? '✅' : ''}${earning.incomeNegative ? '❌' : ''}`,
-                    chatId
+                    chatId,
+                    {disable_web_page_preview: true}
                 )
             }
         }
