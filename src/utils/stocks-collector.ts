@@ -92,7 +92,7 @@ export async function collectStockEarnings(): Promise<Map<string, StockEarning>>
         earnings.set(ticker, {
             name,
             ticker,
-            link: linkWithoutQuery,
+            link: `https://m.ru.investing.com${linkWithoutQuery}`,
             epsForecast: $('div:first-child > .act', stockEarningDetailsElement).text(),
             epsFact: $('div:first-child > .fore', stockEarningDetailsElement).text(),
             incomeForecast: $('div:last-child > .act', stockEarningDetailsElement).text(),
