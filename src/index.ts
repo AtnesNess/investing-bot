@@ -77,6 +77,8 @@ async function checkEarningUpdates() {
 
             today.setHours(0, 0, 0, 0);
 
+            console.log(prevEarning, earning);
+
             if (lastEarningDate && lastEarningDate >= today) continue;
 
             if (earning.earningShowed) {
