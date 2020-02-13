@@ -23,6 +23,7 @@ export interface StockEarning {
     showName: string,
     ticker: string,
     link: string,
+    earningShowed: boolean,
     epsForecast: string,
     epsFact: string,
     incomeForecast: string,
@@ -88,6 +89,8 @@ export async function collectStockEarnings(): Promise<Map<string, StockEarning>>
         const ticker = showNameMatch && showNameMatch[2];
         const link = $('a', stockElement).prop('href');
         const linkWithoutQuery = link.includes('?') ? link.split('?')[0] : link;
+        const epsFact = $('div:first-child > .act', stockEarningDetailsElement).text();
+        const incomeFact = $('div:last-child > .act', stockEarningDetailsElement).text();
 
         if (!ticker || !name) continue;
 
@@ -95,11 +98,12 @@ export async function collectStockEarnings(): Promise<Map<string, StockEarning>>
             showName,
             name,
             ticker,
+            earningShowed: Boolean(epsFact.match(/^[\d,]+$/)) && Boolean(incomeFact.match(/^[\d,A-Z]+$/)),
             link: `https://m.ru.investing.com${linkWithoutQuery}`,
-            epsForecast: $('div:first-child > .act', stockEarningDetailsElement).text(),
-            epsFact: $('div:first-child > .fore', stockEarningDetailsElement).text(),
-            incomeForecast: $('div:last-child > .act', stockEarningDetailsElement).text(),
-            incomeFact: $('div:last-child > .fore', stockEarningDetailsElement).text(),
+            epsFact,
+            epsForecast: $('div:first-child > .fore', stockEarningDetailsElement).text(),
+            incomeFact,
+            incomeForecast: $('div:last-child > .fore', stockEarningDetailsElement).text(),
             epsPositive: Boolean($('div:first-child > .act.greenFont', stockEarningDetailsElement).text()),
             epsNegative: Boolean($('div:first-child > .act.redFont', stockEarningDetailsElement).text()),
             incomePositive: Boolean($('div:last-child > .act.greenFont', stockEarningDetailsElement).text()),

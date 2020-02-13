@@ -13,6 +13,10 @@ export function initModel(sequelize) {
             allowNull: false,
             unique: true,
         },
+        lastEarningDate: {
+            type: Sequelize.DATE,
+            allowNull: true,
+        },
     }, {
           sequelize,
           modelName: 'stock'

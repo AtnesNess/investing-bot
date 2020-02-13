@@ -52,6 +52,7 @@ async function checkEarningUpdates() {
             const name = stock.get('name');
             const earning = stockEarnings.get(ticker);
             const prevEarning = prevStockEarnings.get(ticker);
+            const lastEarningDate = stock.get('lastEarningDate');
 
             if (!earning || !prevEarning) continue;
             if (isEqual(earning, prevEarning)) continue;
@@ -64,14 +65,27 @@ async function checkEarningUpdates() {
             );
 
             if (Number(similarity) < 0.3) continue;
-            console.log(earning, prevEarning, similarity, name);
+
+            const today = new Date();
+
+            today.setHours(0, 0, 0, 0);
+
+            console.log(earning, prevEarning, similarity, name, lastEarningDate, today, lastEarningDate === today);
+
+            if (lastEarningDate && lastEarningDate >= today) continue;
+
+            if (earning.earningShowed) {
+                await stock.update({
+                    lastEarningDate: today
+                });
+            }
 
             for (let chatId of userChatIds) {
                 await sendTgMessage(
                     `📊[${earning.showName}](${earning.link})📊\n` +
-                    `EPS: ${earning.epsForecast} / ${earning.epsFact} ` +
+                    `EPS: ${earning.epsFact} / ${earning.epsForecast} ` +
                     `${earning.epsPositive ? '✅' : ''}${earning.epsNegative ? '❌' : ''}\n` +
-                    `Income: ${earning.incomeForecast} / ${earning.incomeFact} ` +
+                    `Income: ${earning.incomeFact} / ${earning.incomeForecast} ` +
                     `${earning.incomePositive ? '✅' : ''}${earning.incomeNegative ? '❌' : ''}`,
                     chatId,
                     {disable_web_page_preview: true}
