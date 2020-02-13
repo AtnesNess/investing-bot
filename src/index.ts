@@ -64,6 +64,8 @@ async function checkEarningUpdates() {
                 `);`
             );
 
+            console.log(similarity, Number(similarity));
+
             if (Number(similarity) < 0.3) continue;
 
             const today = new Date();
