@@ -47,30 +47,47 @@ async function checkEarningUpdates() {
     });
 
     for (let stock of stocks) {
-        const ticker = stock.get('ticker');
-        const name = stock.get('name');
-        const earning = stockEarnings.get(ticker);
-        const prevEarning = prevStockEarnings.get(ticker);
+        try {
+            const ticker = stock.get('ticker');
+            const name = stock.get('name');
+            const earning = stockEarnings.get(ticker);
+            const prevEarning = prevStockEarnings.get(ticker);
 
-        if (!earning || !prevEarning) continue;
-        if (isEqual(earning, prevEarning)) continue;
+            if (!earning || !prevEarning) continue;
+            if (isEqual(earning, prevEarning)) continue;
 
-        const [[{similarity}]] = await sequelize.query(
-            `SELECT similarity from similarity('${name}', '${earning.name}')`
-        );
+            const [[{similarity}]] = await sequelize.query(
+                `SELECT similarity from similarity(` +
+                    `E'${name.replace(/'/g,'\\\'')}',` +
+                    `E'${earning.name.replace(/'/g,'\\\'')}'` +
+                `);`
+            );
 
-        if (Number(similarity) < 0.3) continue;
+            if (Number(similarity) < 0.3) continue;
+            console.log(earning, prevEarning, similarity, name);
 
-        for (let chatId of userChatIds) {
-            await sendTgMessage(
-                `📊[${earning.showName}](${earning.link})📊\n` +
-                `EPS: ${earning.epsForecast} / ${earning.epsFact} ` +
-                `${earning.epsPositive ? '✅' : ''}${earning.epsNegative ? '❌' : ''}\n` +
-                `Income: ${earning.incomeForecast} / ${earning.incomeFact} ` +
-                `${earning.incomePositive ? '✅' : ''}${earning.incomeNegative ? '❌' : ''}`,
-                chatId,
-                {disable_web_page_preview: true}
-            )
+            for (let chatId of userChatIds) {
+                await sendTgMessage(
+                    `📊[${earning.showName}](${earning.link})📊\n` +
+                    `EPS: ${earning.epsForecast} / ${earning.epsFact} ` +
+                    `${earning.epsPositive ? '✅' : ''}${earning.epsNegative ? '❌' : ''}\n` +
+                    `Income: ${earning.incomeForecast} / ${earning.incomeFact} ` +
+                    `${earning.incomePositive ? '✅' : ''}${earning.incomeNegative ? '❌' : ''}`,
+                    chatId,
+                    {disable_web_page_preview: true}
+                )
+            }
+        } catch(e) {
+            console.error(e);
+
+            const adminChatIds = await User.findAll({where: {isAdmin: true}}).map((user: User) => user.get('chatId'));
+
+            for (let chatId of adminChatIds) {
+                await sendTgMessage(
+                    JSON.stringify(e.message, null, 4),
+                    chatId,
+                );
+            }
         }
     }
 
