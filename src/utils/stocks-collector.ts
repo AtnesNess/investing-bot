@@ -34,6 +34,13 @@ export interface StockEarning {
     incomeNegative: boolean,
 };
 
+export interface StockEarningDiff {
+    epsDif: number,
+    incomeDif: number,
+    epsRate: number,
+    incomeRate: number,
+};
+
 export async function collectStocks(): Promise<Stock[]> {
     let stocks: Stock[] = [];
 
@@ -112,4 +119,51 @@ export async function collectStockEarnings(): Promise<Map<string, StockEarning>>
     }
 
     return earnings;
+}
+export function earningValueToNumber(valueStr: string): number {
+    const valueMatch = valueStr.match(/^(-?[\d]*,?[\d]*)([MB])?$/);
+
+    if (!valueMatch) return NaN;
+
+    let value = Number(valueMatch[1].replace(/,/g, '.'));
+    const e10Letter = valueMatch[2];
+
+    switch (e10Letter) {
+        case 'B':
+            value *= 1e+9;
+            break;
+        case 'M':
+            value *= 1e+6;
+            break;
+        default:
+            break;
+    }
+
+    return value;
+};
+
+export async function getEarningRelativeDifference(earning: StockEarning): Promise<StockEarningDiff> {
+    const {data} = await axios.get(earning.link);
+
+    const $ = cheerio.load(data);
+
+    const prevEarningRowElement = $('tr.earningRow:nth-child(2)');
+    const prevEarningCellElement = $('td:nth-child(3)', prevEarningRowElement);
+
+    const prevEarningEpsText = $('p:first-child', prevEarningCellElement).text().trim();
+    const prevEarningIncomeText = $('p:last-child', prevEarningCellElement).text().trim();
+
+    const prevEarningEps = earningValueToNumber(prevEarningEpsText);
+    const prevEarningIncome = earningValueToNumber(prevEarningIncomeText);
+    const earningEps = earningValueToNumber(earning.epsFact);
+    const earningIncome = earningValueToNumber(earning.incomeFact);
+    const epsDif = (earningEps - prevEarningEps) / Math.abs(prevEarningEps);
+    const incomeDif = (earningIncome - prevEarningIncome) / Math.abs(prevEarningIncome);
+
+    return {
+        epsDif,
+        incomeDif,
+        epsRate: Math.ceil((epsDif || 0) * 5),
+        incomeRate: Math.ceil((incomeDif || 0) * 5),
+    };
 }

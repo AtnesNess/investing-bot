@@ -1,5 +1,6 @@
 import dotenv from 'dotenv';
 import isEqual from 'lodash/isEqual'
+import range from 'lodash/range'
 import http from 'http';
 
 dotenv.config();
@@ -8,7 +9,12 @@ import { runBot, sendTgMessage } from './bot';
 import { initDB, sequelize }from './db';
 import Stock from './db/models/stock';
 import User from './db/models/user';
-import { collectStockEarnings, StockEarning } from './utils/stocks-collector';
+import {
+    collectStockEarnings,
+    getEarningRelativeDifference,
+    StockEarning,
+    StockEarningDiff
+} from './utils/stocks-collector';
 
 const INTERVAL_MS = 1000 * 60 * 2;
 
@@ -53,6 +59,7 @@ async function checkEarningUpdates() {
             const earning = stockEarnings.get(ticker);
             const prevEarning = prevStockEarnings.get(ticker);
             const lastEarningDate = stock.get('lastEarningDate');
+            let earningDif: StockEarningDiff = {epsDif: 0, incomeDif: 0, epsRate: 0, incomeRate: 0};
 
             if (!earning || !prevEarning) continue;
             if (isEqual(earning, prevEarning)) continue;
@@ -64,15 +71,11 @@ async function checkEarningUpdates() {
                 `);`
             );
 
-            console.log(similarity, Number(similarity));
-
             if (Number(similarity) < 0.3) continue;
 
             const today = new Date();
 
             today.setHours(0, 0, 0, 0);
-
-            console.log(earning, prevEarning, similarity, name, lastEarningDate, today, lastEarningDate === today);
 
             if (lastEarningDate && lastEarningDate >= today) continue;
 
@@ -80,15 +83,23 @@ async function checkEarningUpdates() {
                 await stock.update({
                     lastEarningDate: today
                 });
+
+                earningDif = await getEarningRelativeDifference(earning);
+
+                console.log(earningDif, name);
             }
 
             for (let chatId of userChatIds) {
                 await sendTgMessage(
                     `📊[${earning.showName}](${earning.link})📊\n` +
                     `EPS: ${earning.epsFact} / ${earning.epsForecast} ` +
-                    `${earning.epsPositive ? '✅' : ''}${earning.epsNegative ? '❌' : ''}\n` +
+                    `${earning.epsPositive ? '✅' : ''}${earning.epsNegative ? '❌' : ''} ` +
+                    `${range(Math.max(earningDif.epsRate, 10))
+                        .map(() => earningDif.epsRate > 0 ? '⬆️' : '⬇️').join('')}\n` +
                     `Income: ${earning.incomeFact} / ${earning.incomeForecast} ` +
-                    `${earning.incomePositive ? '✅' : ''}${earning.incomeNegative ? '❌' : ''}`,
+                    `${earning.incomePositive ? '✅' : ''}${earning.incomeNegative ? '❌' : ''} `,
+                    `${range(Math.max(earningDif.incomeRate, 10))
+                        .map(() => earningDif.incomeRate > 0 ? '⬆️' : '⬇️').join('')}\n` +
                     chatId,
                     {disable_web_page_preview: true}
                 )
