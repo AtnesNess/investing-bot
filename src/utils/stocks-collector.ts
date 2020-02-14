@@ -159,11 +159,13 @@ export async function getEarningRelativeDifference(earning: StockEarning): Promi
     const earningIncome = earningValueToNumber(earning.incomeFact);
     const epsDif = (earningEps - prevEarningEps) / Math.abs(prevEarningEps);
     const incomeDif = (earningIncome - prevEarningIncome) / Math.abs(prevEarningIncome);
+    const epsDifSign = epsDif < 0 ? -1 : 1;
+    const incomeDifSign = incomeDif < 0 ? -1 : 1;
 
     return {
         epsDif,
         incomeDif,
-        epsRate: epsDif ? Math.ceil(epsDif * 5) : 0,
-        incomeRate: incomeDif ? Math.ceil(incomeDif * 5) : 0,
+        epsRate: (epsDif ? Math.ceil(Math.abs(epsDif) * 5) : 0) * epsDifSign,
+        incomeRate: (incomeDif ? Math.ceil(Math.abs(incomeDif) * 5) : 0) * incomeDifSign,
     };
 }
