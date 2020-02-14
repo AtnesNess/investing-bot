@@ -80,16 +80,15 @@ async function checkEarningUpdates() {
             console.log(prevEarning, earning);
 
             if (lastEarningDate && lastEarningDate >= today) continue;
+            if (!earning.earningShowed) continue;
 
-            if (earning.earningShowed) {
-                await stock.update({
-                    lastEarningDate: today
-                });
+            await stock.update({
+                lastEarningDate: today
+            });
 
-                earningDif = await getEarningRelativeDifference(earning);
+            earningDif = await getEarningRelativeDifference(earning);
 
-                console.log(earningDif, name);
-            }
+            console.log(earningDif, name);
 
             for (let chatId of userChatIds) {
                 await sendTgMessage(
