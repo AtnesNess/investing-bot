@@ -95,11 +95,11 @@ async function checkEarningUpdates() {
                     `📊[${earning.showName}](${earning.link})📊\n` +
                     `EPS: ${earning.epsFact} / ${earning.epsForecast} ` +
                     `${earning.epsPositive ? '✅' : ''}${earning.epsNegative ? '❌' : ''} ` +
-                    `${range(Math.max(earningDif.epsRate, 10))
+                    `${range(Math.min(Math.abs(earningDif.epsRate), 10))
                         .map(() => earningDif.epsRate > 0 ? '⬆️' : '⬇️').join('')}\n` +
                     `Income: ${earning.incomeFact} / ${earning.incomeForecast} ` +
                     `${earning.incomePositive ? '✅' : ''}${earning.incomeNegative ? '❌' : ''} ` +
-                    `${range(Math.max(earningDif.incomeRate, 10))
+                    `${range(Math.min(Math.abs(earningDif.incomeRate), 10))
                         .map(() => earningDif.incomeRate > 0 ? '⬆️' : '⬇️').join('')}\n`,
                     chatId,
                     {disable_web_page_preview: true}
