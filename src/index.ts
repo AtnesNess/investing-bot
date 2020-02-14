@@ -99,7 +99,7 @@ async function checkEarningUpdates() {
                     `${range(Math.max(earningDif.epsRate, 10))
                         .map(() => earningDif.epsRate > 0 ? '⬆️' : '⬇️').join('')}\n` +
                     `Income: ${earning.incomeFact} / ${earning.incomeForecast} ` +
-                    `${earning.incomePositive ? '✅' : ''}${earning.incomeNegative ? '❌' : ''} `,
+                    `${earning.incomePositive ? '✅' : ''}${earning.incomeNegative ? '❌' : ''} ` +
                     `${range(Math.max(earningDif.incomeRate, 10))
                         .map(() => earningDif.incomeRate > 0 ? '⬆️' : '⬇️').join('')}\n` +
                     chatId,

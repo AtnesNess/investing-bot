@@ -163,7 +163,7 @@ export async function getEarningRelativeDifference(earning: StockEarning): Promi
     return {
         epsDif,
         incomeDif,
-        epsRate: Math.ceil((epsDif || 0) * 5),
-        incomeRate: Math.ceil((incomeDif || 0) * 5),
+        epsRate: epsDif ? Math.ceil(epsDif * 5) : 0,
+        incomeRate: incomeDif ? Math.ceil(incomeDif * 5) : 0,
     };
 }
