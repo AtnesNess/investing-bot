@@ -100,7 +100,7 @@ async function checkEarningUpdates() {
                     `Income: ${earning.incomeFact} / ${earning.incomeForecast} ` +
                     `${earning.incomePositive ? '✅' : ''}${earning.incomeNegative ? '❌' : ''} ` +
                     `${range(Math.max(earningDif.incomeRate, 10))
-                        .map(() => earningDif.incomeRate > 0 ? '⬆️' : '⬇️').join('')}\n` +
+                        .map(() => earningDif.incomeRate > 0 ? '⬆️' : '⬇️').join('')}\n`,
                     chatId,
                     {disable_web_page_preview: true}
                 )
