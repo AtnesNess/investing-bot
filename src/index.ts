@@ -71,13 +71,13 @@ async function checkEarningUpdates() {
                 `);`
             );
 
+            console.log(prevEarning, earning, similarity, name);
             if (Number(similarity) < 0.3) continue;
 
             const today = new Date();
 
             today.setHours(0, 0, 0, 0);
 
-            console.log(prevEarning, earning);
 
             if (lastEarningDate && lastEarningDate >= today) continue;
             if (!earning.earningShowed) continue;
