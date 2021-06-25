@@ -19,7 +19,7 @@ import {
 const INTERVAL_MS = 1000 * 60 * 2;
 
 async function initServer() {
-    await initDB(<string>process.env.DATABASE_URL);
+    await initDB();
 
     if (process.env.NODE_ENV === 'production') {
         await runBot();

@@ -1,14 +1,18 @@
 import path from 'path'
 import { Sequelize, ModelType } from 'sequelize';
 
+import sequelizeCfgs from './config';
+
 import { getDirectoryFiles } from '../utils/fs';
 
 const db: Map<string, ModelType> = new Map();
 
 let sequelize: Sequelize;
 
-export async function initDB(url: string) {
-    sequelize = new Sequelize(url, {logging: Boolean(process.env.DB_LOGGING) ? console.log : false});
+const sequelizeCfg = <any>sequelizeCfgs[<string>process.env.NODE_ENV || 'development'];
+
+export async function initDB() {
+    sequelize = new Sequelize(sequelizeCfg.url, sequelizeCfg);
 
     await sequelize.authenticate();
 
