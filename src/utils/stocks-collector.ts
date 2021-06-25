@@ -78,7 +78,7 @@ export async function collectStockEarnings(): Promise<Map<string, StockEarning>>
             dateFrom: todayStr,
             dateTo: todayStr,
         }),
-        url: 'https://m.ru.investing.com/earnings-calendar/services/earningsFilter/',
+        url: 'https://ru.investing.com/earnings-calendar/Service/getCalendarFilteredData',
     });
 
     const {data} = await axios(options);
