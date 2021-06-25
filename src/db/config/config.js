@@ -10,12 +10,12 @@ module.exports = {
     dialect: 'postgres',
     migrationStorageTableName: 'SequelizeMeta',
     logging: Boolean(process.env.DB_LOGGING) ? console.log : false,
-    ssl: true,
-    dialectOptions: {
-      ssl: {
-        require: true
-      }
-    },
+    // ssl: true,
+    // dialectOptions: {
+    //   ssl: {
+    //     require: true
+    //   }
+    // },
   },
   testing: {
     url: process.env.TESTING_DATABASE_URL,

@@ -81,23 +81,29 @@ export async function collectStockEarnings(): Promise<Map<string, StockEarning>>
         url: 'https://ru.investing.com/earnings-calendar/Service/getCalendarFilteredData',
     });
 
-    const {data} = await axios(options);
+    const {data: {data}} = await axios(options);
+    
 
-    const $ = cheerio.load(data);
+    const $ = cheerio.load(`<table>${data}</table>`);
 
-    const stockElements = $('article.calItem').toArray();
+    const stockElements = $('tr').toArray().slice(1);
+
+    
 
     for (let stockElement of stockElements) {
-        const stockEarningDetailsElement = $('.earningsDetails', stockElement);
-
-        const showName = $('p', stockElement).text().trim();
-        const showNameMatch = showName.match(/(.*)?\s+?\((.*)?\)/);
-        const name = showNameMatch && showNameMatch[1];
-        const ticker = showNameMatch && showNameMatch[2];
+        const name = $('.earnCalCompanyName', stockElement).text().trim();
+        const ticker = $('a', stockElement).text().trim(); //showNameMatch && showNameMatch[2];
         const link = $('a', stockElement).prop('href');
+        const showName = `${name}(${ticker})`;
         const linkWithoutQuery = link.includes('?') ? link.split('?')[0] : link;
-        const epsFact = $('div:first-child > .act', stockEarningDetailsElement).text();
-        const incomeFact = $('div:last-child > .act', stockEarningDetailsElement).text();
+        const epsFact = $('td:nth-child(3)', stockElement).text().replace(/[\/\s-]/g, '');
+        const incomeFact = $('td:nth-child(4)', stockElement).text().replace(/[\/\s-]/g, '');;
+        const epsForecast = $('td:nth-child(5)', stockElement).text().replace(/[\/\s-]/g, '');;
+        const incomeForecast = $('td:nth-child(6)', stockElement).text().replace(/[\/\s-]/g, '');;
+        const epsPositive = Boolean($('td:nth-child(3).greenFont', stockElement).text());
+        const epsNegative = Boolean($('td:nth-child(3).redFont', stockElement).text());
+        const incomePositive = Boolean($('td:nth-child(5).greenFont', stockElement).text());
+        const incomeNegative = Boolean($('td:nth-child(5).redFont', stockElement).text());
 
         if (!ticker || !name) continue;
 
@@ -108,13 +114,13 @@ export async function collectStockEarnings(): Promise<Map<string, StockEarning>>
             earningShowed: Boolean(epsFact.match(/^[\d,]+$/)) && Boolean(incomeFact.match(/^[\d,A-Z]+$/)),
             link: `https://m.ru.investing.com${linkWithoutQuery}`,
             epsFact,
-            epsForecast: $('div:first-child > .fore', stockEarningDetailsElement).text(),
+            epsForecast,
             incomeFact,
-            incomeForecast: $('div:last-child > .fore', stockEarningDetailsElement).text(),
-            epsPositive: Boolean($('div:first-child > .act.greenFont', stockEarningDetailsElement).text()),
-            epsNegative: Boolean($('div:first-child > .act.redFont', stockEarningDetailsElement).text()),
-            incomePositive: Boolean($('div:last-child > .act.greenFont', stockEarningDetailsElement).text()),
-            incomeNegative: Boolean($('div:last-child > .act.redFont', stockEarningDetailsElement).text()),
+            incomeForecast,
+            epsPositive,
+            epsNegative,
+            incomePositive,
+            incomeNegative,
         });
     }
 
