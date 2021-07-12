@@ -2,6 +2,7 @@ import axios, { AxiosRequestConfig } from 'axios';
 import qs from 'qs';
 import cheerio from 'cheerio';
 import get from 'lodash/get';
+import moment from 'moment';
 
 const PER_PAGE = 1200;
 
@@ -82,17 +83,13 @@ export async function collectStockEarnings(): Promise<Map<string, StockEarning>>
     });
 
     const {data: {data}} = await axios(options);
-    
-
     const $ = cheerio.load(`<table>${data}</table>`);
 
     const stockElements = $('tr').toArray().slice(1);
 
-    
-
     for (let stockElement of stockElements) {
         const name = $('.earnCalCompanyName', stockElement).text().trim();
-        const ticker = $('a', stockElement).text().trim(); //showNameMatch && showNameMatch[2];
+        const ticker = $('a', stockElement).text().trim();
         const link = $('a', stockElement).prop('href');
         const showName = `${name}(${ticker})`;
         const linkWithoutQuery = link.includes('?') ? link.split('?')[0] : link;
@@ -150,14 +147,31 @@ export function earningValueToNumber(valueStr: string): number {
 
 export async function getEarningRelativeDifference(earning: StockEarning): Promise<StockEarningDiff> {
     const {data} = await axios.get(earning.link);
+    const today = new Date();
+
+    today.setHours(0, 0, 0, 0);
 
     const $ = cheerio.load(data);
 
-    const prevEarningRowElement = $('tr.earningRow:nth-child(2)');
-    const prevEarningCellElement = $('td:nth-child(3)', prevEarningRowElement);
+    let prevEarningRowElement = null;
 
-    const prevEarningEpsText = $('p:first-child', prevEarningCellElement).text().trim();
-    const prevEarningIncomeText = $('p:last-child', prevEarningCellElement).text().trim();
+    for (let trElement of $('tr[name="instrumentEarningsHistory"]').toArray()) {
+        const dateStr = $('td:nth-child(1)', trElement).text();
+        const date = moment(dateStr, 'DD.MM.yyyy').toDate();
+
+        if (date < today) {
+            prevEarningRowElement = trElement;
+            break;
+        }
+    }
+
+    if (!prevEarningRowElement) {
+        throw new Error(`No previous earning for ${earning.ticker}`)
+    }
+    
+    
+    const prevEarningEpsText = $('td:nth-child(3)', prevEarningRowElement).text().trim();
+    const prevEarningIncomeText = $('td:nth-child(5)', prevEarningRowElement).text().trim();
 
     const prevEarningEps = earningValueToNumber(prevEarningEpsText);
     const prevEarningIncome = earningValueToNumber(prevEarningIncomeText);

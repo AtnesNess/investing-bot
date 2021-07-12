@@ -37,13 +37,6 @@ async function initServer() {
 let prevStockEarnings: Map<string | null, StockEarning>;
 async function checkEarningUpdates() {
     const stockEarnings = await collectStockEarnings();
-
-    if (!prevStockEarnings) {
-        prevStockEarnings = stockEarnings;
-
-        return;
-    }
-
     const userChatIds = await User.findAll().map((user: User) => user.get('chatId'));
 
     const stocks = await Stock.findAll({
@@ -57,11 +50,11 @@ async function checkEarningUpdates() {
             const ticker = stock.get('ticker');
             const name = stock.get('name');
             const earning = stockEarnings.get(ticker);
-            const prevEarning = prevStockEarnings.get(ticker);
+            const prevEarning = prevStockEarnings && prevStockEarnings.get(ticker);
             const lastEarningDate = stock.get('lastEarningDate');
             let earningDif: StockEarningDiff = {epsDif: 0, incomeDif: 0, epsRate: 0, incomeRate: 0};
 
-            if (!earning || !prevEarning) continue;
+            if (!earning) continue;
             if (isEqual(earning, prevEarning)) continue;
 
             const [[{similarity}]] = await sequelize.query(
@@ -71,13 +64,12 @@ async function checkEarningUpdates() {
                 `);`
             );
 
-            console.log(prevEarning, earning, similarity, name);
+            console.log(earning, similarity, name);
             if (Number(similarity) < 0.3) continue;
 
             const today = new Date();
 
             today.setHours(0, 0, 0, 0);
-
 
             if (lastEarningDate && lastEarningDate >= today) continue;
             if (!earning.earningShowed) continue;
