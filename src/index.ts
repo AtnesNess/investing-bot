@@ -1,7 +1,9 @@
+import axios from 'axios';
 import dotenv from 'dotenv';
 import isEqual from 'lodash/isEqual'
 import range from 'lodash/range'
 import http from 'http';
+import moment from 'moment';
 
 dotenv.config();
 
@@ -28,10 +30,47 @@ async function initServer() {
     checkEarningUpdates();
     setInterval(checkEarningUpdates, INTERVAL_MS);
 
+    if (process.env.ICBC) {
+        checkICBC();
+        setInterval(checkICBC, INTERVAL_MS);
+    }
+
     http.createServer((_, res) => {
         res.writeHead(200);
         res.end();
     }).listen(process.env.PORT);
+}
+
+async function checkICBC() {
+    try {
+        const {data} = await axios.get('https://onlinebusiness.icbc.com/qmaticwebbooking/rest/schedule/branches/ea01f5e5ba07af767a739c1d66730bef9663a1a307b84e4674cffcd93caad1b5/dates;servicePublicId=da8488da9b5df26d32ca58c6d6a7973bedd5d98ad052d62b468d3b04b080ea25;customSlotLength=40');
+        const now = new Date();
+        const date = new Date(`${data[0].date} GMT-0700`);
+
+        if (date > moment(now).add(14, 'd').toDate()) {
+            return;
+        }
+
+        const adminChatIds = await User.findAll({where: {isAdmin: true}}).map((user: User) => user.get('chatId'));
+
+        for (let chatId of adminChatIds) {
+            await sendTgMessage(
+                `Available slots on ${date}: https://onlinebusiness.icbc.com/qmaticwebbooking/#/`,
+                chatId,
+            );
+        }
+    } catch(e) {
+        console.error(e);
+
+        const adminChatIds = await User.findAll({where: {isAdmin: true}}).map((user: User) => user.get('chatId'));
+
+        for (let chatId of adminChatIds) {
+            await sendTgMessage(
+                JSON.stringify(e.message, null, 4),
+                chatId,
+            );
+        }
+    }
 }
 
 let prevStockEarnings: Map<string | null, StockEarning>;
