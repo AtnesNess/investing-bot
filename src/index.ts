@@ -108,7 +108,6 @@ async function checkEarningUpdates() {
                 `);`
             );
 
-            console.log(earning, similarity, name);
             if (Number(similarity) < 0.3) continue;
 
             const today = new Date();
@@ -123,8 +122,6 @@ async function checkEarningUpdates() {
             });
 
             earningDif = await getEarningRelativeDifference(earning);
-
-            console.log(earningDif, name);
 
             for (let chatId of userChatIds) {
                 await sendTgMessage(
