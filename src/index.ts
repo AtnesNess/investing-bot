@@ -65,19 +65,25 @@ async function checkICBC() {
         const data = response.data;
         
         const now = new Date();
-        const date = new Date(`${data[0].date} GMT-0700`);
-
-        if (date > moment(now).add(14, 'd').toDate()) {
-            return;
-        }
 
         const adminChatIds = await User.findAll({where: {isAdmin: true}}).map((user: User) => user.get('chatId'));
+        const dates: Date[] = data.map(({date}: {date: string}) => new Date(`${date} GMT-0700`));
 
-        for (let chatId of adminChatIds) {
-            await sendTgMessage(
-                `Available slots on ${date}: https://onlinebusiness.icbc.com/qmaticwebbooking/#/`,
-                chatId,
-            );
+        for (let date of dates) {
+            if (date > moment(now).add(14, 'd').toDate()) {
+                return;
+            }
+
+            if (process.env.ICBC_SKIP_TODAY && date.getDate() === now.getDate() && date.getMonth() === now.getMonth()) {
+                continue;
+            }
+    
+            for (let chatId of adminChatIds) {
+                await sendTgMessage(
+                    `Available slots on ${date}: https://onlinebusiness.icbc.com/qmaticwebbooking/#/`,
+                    chatId,
+                );
+            }
         }
     } catch(e) {
         console.error(e);
