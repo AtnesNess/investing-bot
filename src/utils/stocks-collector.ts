@@ -94,8 +94,8 @@ export async function collectStockEarnings(): Promise<Map<string, StockEarning>>
         const showName = `${name}(${ticker})`;
         const linkWithoutQuery = link.includes('?') ? link.split('?')[0] : link;
         const epsFact = $('td:nth-child(3)', stockElement).text().replace(/[\/\s-]/g, '');
-        const incomeFact = $('td:nth-child(4)', stockElement).text().replace(/[\/\s-]/g, '');;
-        const epsForecast = $('td:nth-child(5)', stockElement).text().replace(/[\/\s-]/g, '');;
+        const epsForecast = $('td:nth-child(4)', stockElement).text().replace(/[\/\s-]/g, '');;
+        const incomeFact = $('td:nth-child(5)', stockElement).text().replace(/[\/\s-]/g, '');;
         const incomeForecast = $('td:nth-child(6)', stockElement).text().replace(/[\/\s-]/g, '');;
         const epsPositive = Boolean($('td:nth-child(3).greenFont', stockElement).text());
         const epsNegative = Boolean($('td:nth-child(3).redFont', stockElement).text());
