@@ -87,6 +87,7 @@ async function checkICBC() {
         }
     } catch(e) {
         console.error(e);
+        if (e.message === 'socket hang up') return;
 
         const adminChatIds = await User.findAll({where: {isAdmin: true}}).map((user: User) => user.get('chatId'));
 
