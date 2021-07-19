@@ -48,13 +48,18 @@ const ICBC_ENDPOINTS = {
     'Burnaby Metrotown': 'qmaticwebbooking/rest/schedule/branches/e879cd70e75ba8db2fb03b3d2060bf7c1c74e5d879ebea3cc585fd2d707a278d/dates;servicePublicId=da8488da9b5df26d32ca58c6d6a7973bedd5d98ad052d62b468d3b04b080ea25;customSlotLength=40',
 }
 async function checkICBC() {
+    const now = new Date();
+
+    if (moment(now).utcOffset(-7).hour() < 9) {
+        return;
+    }
+
     for (let [place, endpoint] of Object.entries(ICBC_ENDPOINTS)) {
         try {
             const response = await axios.get(`http://35.183.114.238:6898/icbc?path=${encodeURIComponent(endpoint)}`);
     
             const data = response.data;
-            
-            const now = new Date();
+        
     
             const adminChatIds = await User.findAll({where: {isAdmin: true}}).map((user: User) => user.get('chatId'));
             const dates: Date[] = data.map(({date}: {date: string}) => new Date(`${date} GMT-0700`));
