@@ -41,63 +41,54 @@ async function initServer() {
     }).listen(process.env.PORT);
 }
 
+const ICBC_ENDPOINTS = {
+    'Downtown': 'qmaticwebbooking/rest/schedule/branches/ea01f5e5ba07af767a739c1d66730bef9663a1a307b84e4674cffcd93caad1b5/dates;servicePublicId=da8488da9b5df26d32ca58c6d6a7973bedd5d98ad052d62b468d3b04b080ea25;customSlotLength=40',
+    'Vancouver Commercial Drive': 'qmaticwebbooking/rest/schedule/branches/0ab916058f4b572eae9dfbdf0693fa9f2f97a34a19bee6c68d09cb28b78ac3c3/dates;servicePublicId=da8488da9b5df26d32ca58c6d6a7973bedd5d98ad052d62b468d3b04b080ea25;customSlotLength=40',
+    'Burnaby Lougheed':  'qmaticwebbooking/rest/schedule/branches/53851ce8b410de56e26a0f0d2eda5a3e8d8cf4e05cc1b21af70121f53ef53b5d/dates;servicePublicId=da8488da9b5df26d32ca58c6d6a7973bedd5d98ad052d62b468d3b04b080ea25;customSlotLength=40',
+    'Burnaby Metrotown': 'qmaticwebbooking/rest/schedule/branches/e879cd70e75ba8db2fb03b3d2060bf7c1c74e5d879ebea3cc585fd2d707a278d/dates;servicePublicId=da8488da9b5df26d32ca58c6d6a7973bedd5d98ad052d62b468d3b04b080ea25;customSlotLength=40',
+}
 async function checkICBC() {
-    try {
-        let response = null;
-        let count = 1;
-        while (!response) {
-            try {
-                response = await axios.get('https://onlinebusiness.icbc.com/qmaticwebbooking/rest/schedule/branches/ea01f5e5ba07af767a739c1d66730bef9663a1a307b84e4674cffcd93caad1b5/dates;servicePublicId=da8488da9b5df26d32ca58c6d6a7973bedd5d98ad052d62b468d3b04b080ea25;customSlotLength=40', {
-                    proxy: {
-                        host: process.env.ICBC_PROXY_HOST as string,
-                        port: Number(process.env.ICBC_PROXY_PORT),
-                    },
-                });
-            } catch(e) {
-                await new Promise(resolve => setTimeout(resolve, 1000));
-
-                if (count++ >= 3) {
-                    throw e;
+    for (let [place, endpoint] of Object.entries(ICBC_ENDPOINTS)) {
+        try {
+            const response = await axios.get(`http://35.183.114.238:6898/icbc?path=${encodeURIComponent(endpoint)}`);
+    
+            const data = response.data;
+            
+            const now = new Date();
+    
+            const adminChatIds = await User.findAll({where: {isAdmin: true}}).map((user: User) => user.get('chatId'));
+            const dates: Date[] = data.map(({date}: {date: string}) => new Date(`${date} GMT-0700`));
+    
+            for (let date of dates) {
+                if (date > moment(now).add(14, 'd').toDate()) {
+                    break;
+                }
+    
+                if (process.env.ICBC_SKIP_TODAY && date.getDate() === now.getDate() && date.getMonth() === now.getMonth()) {
+                    continue;
+                }
+        
+                for (let chatId of adminChatIds) {
+                    await sendTgMessage(
+                        `Available slots for ${place} on ${date}: https://onlinebusiness.icbc.com/qmaticwebbooking/#/`,
+                        chatId,
+                    );
                 }
             }
-        }
-
-        const data = response.data;
-        
-        const now = new Date();
-
-        const adminChatIds = await User.findAll({where: {isAdmin: true}}).map((user: User) => user.get('chatId'));
-        const dates: Date[] = data.map(({date}: {date: string}) => new Date(`${date} GMT-0700`));
-
-        for (let date of dates) {
-            if (date > moment(now).add(14, 'd').toDate()) {
-                return;
-            }
-
-            if (process.env.ICBC_SKIP_TODAY && date.getDate() === now.getDate() && date.getMonth() === now.getMonth()) {
-                continue;
-            }
+            await new Promise(resolve => {setTimeout(resolve, 1000)});
+        } catch(e) {
+            console.error(e);
+    
+            const adminChatIds = await User.findAll({where: {isAdmin: true}}).map((user: User) => user.get('chatId'));
     
             for (let chatId of adminChatIds) {
                 await sendTgMessage(
-                    `Available slots on ${date}: https://onlinebusiness.icbc.com/qmaticwebbooking/#/`,
+                    JSON.stringify(e.message, null, 4),
                     chatId,
                 );
             }
         }
-    } catch(e) {
-        console.error(e);
-        if (e.message === 'socket hang up') return;
-
-        const adminChatIds = await User.findAll({where: {isAdmin: true}}).map((user: User) => user.get('chatId'));
-
-        for (let chatId of adminChatIds) {
-            await sendTgMessage(
-                JSON.stringify(e.message, null, 4),
-                chatId,
-            );
-        }
-    }
+    }   
 }
 
 let prevStockEarnings: Map<string | null, StockEarning>;
