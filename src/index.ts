@@ -74,6 +74,8 @@ async function checkICBC() {
                 }
         
                 for (let chatId of adminChatIds) {
+                    if (chatId == 450566 && place !== 'Downtown') continue;
+
                     await sendTgMessage(
                         `Available slots for ${place} on ${date}: https://onlinebusiness.icbc.com/qmaticwebbooking/#/`,
                         chatId,
